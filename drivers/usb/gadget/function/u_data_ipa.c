@@ -266,6 +266,8 @@ static void ipa_data_disconnect_work(struct work_struct *w)
 		if (atomic_xchg(&port->pipe_connect_notified, 0) == 1) {
 			void *priv;
 
+			if (!rndis_qc_get_ipa_priv)
+				return;
 			priv = rndis_qc_get_ipa_priv();
 			rndis_ipa_pipe_disconnect_notify(priv);
 		}
@@ -532,7 +534,8 @@ static void ipa_data_connect_work(struct work_struct *w)
 		pr_debug("configure bam ipa connect for USB OUT\n");
 		port->ipa_params.dir = USB_TO_PEER_PERIPHERAL;
 
-		if (port->func_type == USB_IPA_FUNC_RNDIS) {
+		if (port->func_type == USB_IPA_FUNC_RNDIS &&
+				rndis_qc_get_ipa_priv) {
 			port->ipa_params.notify = rndis_qc_get_ipa_rx_cb();
 			port->ipa_params.priv = rndis_qc_get_ipa_priv();
 			port->ipa_params.skip_ep_cfg =
@@ -573,7 +576,8 @@ static void ipa_data_connect_work(struct work_struct *w)
 		pr_debug("configure bam ipa connect for USB IN\n");
 		port->ipa_params.dir = PEER_PERIPHERAL_TO_USB;
 
-		if (port->func_type == USB_IPA_FUNC_RNDIS) {
+		if (port->func_type == USB_IPA_FUNC_RNDIS &&
+				rndis_qc_get_ipa_priv) {
 			port->ipa_params.notify = rndis_qc_get_ipa_tx_cb();
 			port->ipa_params.priv = rndis_qc_get_ipa_priv();
 			port->ipa_params.skip_ep_cfg =
@@ -1387,7 +1391,8 @@ void ipa_data_stop_rndis_ipa(enum ipa_func_type func)
 	if (!atomic_read(&port->pipe_connect_notified))
 		return;
 
-	rndis_ipa_reset_trigger();
+	if (rndis_ipa_reset_trigger)
+		rndis_ipa_reset_trigger();
 	ipa_data_stop_endless_xfer(port, true);
 	ipa_data_stop_endless_xfer(port, false);
 	spin_lock_irqsave(&port->port_lock, flags);

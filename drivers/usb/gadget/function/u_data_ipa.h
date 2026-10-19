@@ -109,11 +109,17 @@ void ipa_data_start_rndis_ipa(enum ipa_func_type func);
 
 void ipa_data_stop_rndis_ipa(enum ipa_func_type func);
 
-void *rndis_qc_get_ipa_priv(void);
-void *rndis_qc_get_ipa_rx_cb(void);
-bool rndis_qc_get_skip_ep_config(void);
-void *rndis_qc_get_ipa_tx_cb(void);
-void rndis_ipa_reset_trigger(void);
+/*
+ * Provided by f_qc_rndis.c only. Declared weak so that this shared glue can
+ * also be linked in when the QCRNDIS gadget itself is disabled (e.g. when
+ * only usb_f_rmnet_bam is built in); the call sites are all guarded by
+ * USB_IPA_FUNC_RNDIS checks, so they are never reached in that case.
+ */
+void *rndis_qc_get_ipa_priv(void) __attribute__((weak));
+void *rndis_qc_get_ipa_rx_cb(void) __attribute__((weak));
+bool rndis_qc_get_skip_ep_config(void) __attribute__((weak));
+void *rndis_qc_get_ipa_tx_cb(void) __attribute__((weak));
+void rndis_ipa_reset_trigger(void) __attribute__((weak));
 void gqti_ctrl_update_ipa_pipes(void *gr, enum qti_port_type qport,
 				u32 ipa_prod, u32 ipa_cons);
 #endif

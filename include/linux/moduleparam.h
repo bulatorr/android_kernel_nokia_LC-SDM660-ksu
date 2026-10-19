@@ -9,8 +9,12 @@
    module name. */
 #ifdef MODULE
 #define MODULE_PARAM_PREFIX /* empty */
-#else
+#elif defined(KBUILD_MODNAME)
 #define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
+#else
+/* Built-in object shared between several modules: kbuild does not define
+   KBUILD_MODNAME for multi-used-y objects, fall back to an empty prefix. */
+#define MODULE_PARAM_PREFIX /* empty */
 #endif
 
 /* Chosen so that structs with an unsigned long line up. */
